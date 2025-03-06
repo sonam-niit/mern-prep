@@ -1,0 +1,127 @@
+1. Querying Nested Documents
+-----------------------------------------
+
+collection of users:
+
+{
+	"_id":1,
+	"name":"John Doe",
+	"address":{
+		"city":"New York",
+		"zipcode":"100001"
+	},
+	"orders":[
+		{
+			"order_id":1,
+			"product":"Laptop",
+			"amount":1200
+		},
+		{
+			"order_id":2,
+			"product":"Phone",
+			"amount":800
+		}
+	]
+}
+
+Insert Above Document to users collection
+>use nestedquery
+>db.users.insertOne({
+	"_id":1,
+	"name":"John Doe",
+	"address":{
+		"city":"New York",
+		"zipcode":"100001"
+	},
+	"orders":[
+		{
+			"order_id":1,
+			"product":"Laptop",
+			"amount":1200
+		},
+		{
+			"order_id":2,
+			"product":"Phone",
+			"amount":800
+		}
+	]
+})
+
+Que1 : Find the user who live in NewYork
+
+	db.users.find({"address.city":"New York"})
+
+Que2: find the users who live in newyork and have a zipcode "100001"
+
+	db.users.find({"address.city":"New York","address.zipcode":"100001"})
+
+Que3: find the user who has ordered phone:
+
+	db.users.find({"orders.product":"Phone"});
+
+Que4: find users who have an order where the product is "Laptop" and the amount is greater that 1000.
+
+	db.users.find({
+		$and:[
+  			{"orders.product":"Laptop"},
+  			{"orders.amount":{$gt:1000}}
+  		]})
+	
+	
+	another solution:
+
+	db.users.find({
+		"orders":{
+			$elemMatch:{
+				product:"Laptop",
+				amount:{$gt:1000}
+			}
+		}
+	})
+
+	using aggregation
+
+	db.users.aggregate([
+		{
+			$match:{
+				"orders.product":"Laptop",
+				"orders.amount":{$gt:1000}
+			}
+		}
+	])
+
+
+Que: To find users and return only the first order in their orders array.
+
+	db.users.find({},{"orders":{$slice:1}})
+
+Que: find those users who have exactly made only 2 orders
+
+	db.users.find({"orders":{$size:2}})
+
+Que: to find users who have made an order with an amount greater than 1000 and then project only the matching order.
+
+	db.users.aggregate([
+		{$match:{"orders.amount":{$gt:1000}}},
+		{$project:{name:1,orders:{$filter:{input:"$orders",as:"order",cond:{$gt:["$$order.amount",1000]}}}}}
+	])
+
+
+Que: list each order as a separate document along with user details:
+
+	db.users.aggregate([
+		{$unwind: "$orders"},
+		{$match:{"orders.amount":{$gt:1000}}},
+		{$project:{name:1,"orders.product":1,"orders.amount":1}}
+	])
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,123 @@
+Map Functions: It processes each document in the collection and emits the key-value pair.
+
+Reduce Function: It takes the output of Map function and reduces it into single Value.
+
+Define Data
+---------------------
+db.user_interaction.insertMany([
+	{
+		"user_id":"user123",
+		"interaction_type":"click",
+		"timestamp":ISODate('2023-05-22'),
+		"metadata":{
+			"page":"/home",
+			"section":"header"
+		}
+	},
+	{
+		"user_id":"user456",
+		"interaction_type":"scroll",
+		"timestamp":ISODate('2023-04-22'),
+		"metadata":{
+			"page":"/about",
+			"section":"content"
+		}
+	},
+	{
+		"user_id":"user123",
+		"interaction_type":"click",
+		"timestamp":ISODate('2023-05-21'),
+		"metadata":{
+			"page":"/contact",
+			"section":"footer"
+		}
+	}
+
+
+])
+
+===================================================================================
+var mapFunction= function(){
+emit(this.user_id,1);
+}
+
+//processe each document and emits key-value pair where the key is user_id and value is 1 (indicating one interaction)
+
+var reduceFunction= function(key,value){
+return Array.sum(value);
+}
+//takes output of Map functions and sums the values to get the total number of interaction per user.
+
+//Execute Map and Reduce together
+
+db.user_interaction.mapReduce(
+mapFunction,
+reduceFunction,
+  {
+     out:"interaction_counts"
+});
+db.interaction_counts.find().sort({value:-1}).limit(1);
+
+//Analyze that result
+
+Same Query using Aggregate
+-----------------------------------
+db.user_interaction.aggregate([
+	{
+		$group:{
+			_id:"$user_id",
+			interaction_count:{$sum:1}
+		}
+	
+	}  , 
+		{$sort:{interaction_count:-1}}
+])
+
+For creating Text Index
+-------------------------------------
+create some collections of Articles where you can add  title,content,date,rating:
+
+//efficient text search
+
+db.articles.createIndex({title:"text",content:"text"});
+
+//performing text search
+
+db.articles.find({$text:{$search:"MongoDb Text Search"}})
+
+//Sort search Results by Relevant
+
+db.articles.find(
+{$text:{$search:"MongoDb Text Search"}},
+{score: {$meta:"textScore"}}
+).sort({score:{$meta:"textScore"}})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

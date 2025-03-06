@@ -1,0 +1,140 @@
+Aggregate Examples
+-----------------------------
+1. $match : filter documents
+
+Query: Find All active Users
+
+db.users.aggregate([
+	{$match: {status: "active"}}
+])
+
+2. $group:: Group Documents based on some specific Fields.
+
+db.users.aggregate([
+	{
+		$group:{
+		    _id:"$status",
+		    count: {$sum:1}
+		}
+	}
+])
+
+3. $project: Reshaping your document
+
+	Query: Show only names and emails of all users
+
+	Way 1> db.users.find({},{_id:0,name:1,email:1});
+
+	Way 2> db.users.aggregate([
+
+			{
+				$project:{_id:0,name:1,email:1}
+			}
+		])
+
+
+4. $Sort: Sort Documents
+
+	db.users.aggregate([
+		{$sort: {age:-1}}
+	])
+
+	> db.users.find().sort({age:-1})
+
+	>Combining multiple conditions in aggregate
+
+	db.users.aggregate([
+			{$project:{_id:0,name:1,age:1}},
+			{$sort:{age:-1,name:1}}
+		])
+5. $limit , $skip
+
+	db.users.aggregate([
+		{$project:{_id:0,name:1,age:1}},
+		{$sort:{name:1}},
+		{$limit:2}
+	])
+
+	> db.users.find({},{_id:0,name:1,age:1}).sort({name:1}).skip(2).limit(2)
+
+6. $unwind: Deconstruct array fields
+
+	db.users.aggregate([
+		{$unwind:"$roles"}
+	])
+7. $lookup : performing left outer join to another collection:
+
+	db.departments.insertMany([
+		{_id:1, name:"HR"},
+		{_id:2, name:"Engineering"},
+		{_id:3, name:"Marketing"}
+	])
+
+	>db.users.updateOne({name: 'John Doe'},{$set:{department_id:2}})
+
+	(update all users with different department_id fields)
+
+	Query: 	Join users with department and show the department name for each user.
+
+	db.users.aggregate([
+		{
+			$lookup:{
+				from:'departments',
+				localField:'department_id',
+				foreignField:'_id',
+				as:'department'
+			}
+		},
+		{
+			$unwind:'$department'
+		},
+		{
+			$project:{name:1,email:1,'department.name':1}
+		}
+	])
+
+8. $addFields add new field in document
+
+	db.users.aggregate([
+		{
+			$addFields:{isAdult:{$gte:['$age',18]}}
+		}
+	])
+
+9. $count : count the no of documents
+	
+	db.users.aggregate([
+		{$count:'total_users'}
+	])
+10. combining multiple stages
+
+	db.users.aggregate([
+		{$match:{status:'active'}},
+		{$unwind:'$roles'},
+		{
+			$group:{
+				_id:'$roles',
+				averageAge:{$avg:'$age'}
+			}
+		}
+	])
+
+
+	----------------------------------------------------------
+
+	db.users.aggregate([
+		{$match:{status:'active'}},
+		{$unwind:'$roles'},
+		{
+			$group:{
+				_id:'$roles',
+				count:{$sum:1}
+			}
+		}
+	])
+
+
+
+
+
+

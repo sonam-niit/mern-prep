@@ -1,0 +1,189 @@
+db.users.insertMany([
+	{
+		name:"John Doe",
+		age:28,
+		email:"john.doe@gmail.com",
+		status:"active",
+		roles:["admin","user"]
+	},
+	{
+		name:"Jane Smith",
+		age:34,
+		email:"jane.smith@gmail.com",
+		status:"inactive",
+		roles:["user"]
+	},
+	{
+		name:"Alice Johnson",
+		age:23,
+		email:"alice@gmail.com",
+		status:"active",
+		roles:["admin","user","superadmin"]
+	},
+	{
+		name:"Bob Brown",
+		age:45,
+		email:"bobbrown@gmail.com",
+		status:"pending",
+		roles:["guest"]
+	},
+	{
+		name:"Charlie Green",
+		age:29,
+		email:"charlie@gmail.com",
+		status: "active",
+		roles:["admin","user"]
+	}
+
+])
+========================================================================================
+Operators
+
+1. Equality Operator
+
+db.users.find({name: {$eq: "John Doe"}})
+
+2. Not equal Opeartor
+
+db.users.find({age:{$ne:28}})
+
+3. Comparison Operators ($lt, $gt, $gte, $lte)
+
+   > find users who are older than 25.  :: db.users.find({age:{$gt:25}})
+   > find users who are 25 years old or older :: db.users.find({age:{$gte:25}})
+   > find users who are younger than 30 :: db.users.find({age:{$lt:30}})
+   > find users who are 30 years old or younger :: db.users.find({age:{$lte:30}})
+
+4. Logical Operators:: ($and, $or, $not, $nor)
+
+	> find users who are either older than 25 or have the status "active"
+
+	db.users.find({
+		$or:[
+			{age: {$gt:25}},
+			{status: "active"}
+		]
+	})
+
+       > find users who are older than 25 and have status "active"
+
+	db.users.find({
+		$and:[
+			{age: {$gt:25}},
+			{status: "active"}
+		]
+	})
+
+	> find users who are not 28 years old
+
+	db.users.find({
+		age:{$not: {$eq:28}}
+	})
+
+	> find users who neither have the status "active" nor are older than 25
+
+	db.users.find({
+		$nor:[
+			{age: {$gt:25}},
+			{status: "active"}
+		]
+	})
+
+5. Element Operators: ($exists , $type)
+
+	> Find users with an  email field.
+	
+	db.users.find({email: {$exists:true}})
+
+	> find users where the age field is a number
+
+	db.users.find({age:{$type:"number"}})
+
+6. Array Operators: ($in, $nin, $all, $size, $elemMatch)
+
+	>find users who have either the role admin or user
+
+	db.users.find({roles:{$in:["admin","user"]}})
+
+	> find users who do not have the role "guest"
+
+	db.users.find({roles:{$nin:["guest"]}})
+
+	> find users who have both "admin" and "user" roles.
+	
+	db.users.find({roles:{$all:["admin","user"]}})
+
+	> find users who have exactly 2 roles. 
+
+         	db.users.find({roles:{$size:2}})
+		db.users.find({roles:{$size:3}})
+
+	> find users where one of the roles is "admin"
+	
+	db.users.find({roles:{$elemMatch:{$eq:"admin"}}})
+
+7. Regular Expression ($regex)
+
+	find users whose email ends with gmail.com
+
+	db.users.find({email:{$regex:/gmail\.com$/}})
+
+	db.users.find({name:{$regex:/^john doe$/i}})
+
+8. Update Operators ($set, $unset, $inc, $push, $pull)
+
+	> Update User Email
+	
+	db.users.updateOne(
+		{name:"John Doe"},
+		{$set:{email:"john.doe@example.com"}}
+	)
+
+	> Remove users's status Field
+
+	db.users.updateOne(
+		{name:"John Doe"},
+		{$unset:{status:""}}
+	)
+
+	> Increment a user's Age by 1
+
+	db.users.updateOne(
+		{name:"John Doe"},
+		{$inc:{age:1}}
+	)
+	
+	> Add a role to user's role array
+
+	db.users.updateOne(
+		{name:"John Doe"},
+		{$push:{roles: "superadmin"}}
+	)
+
+	> Remove a role from a  user's roles array
+
+	db.users.updateOne(
+		{name:"John Doe"},
+		{$pull:{roles: "user"}}
+	)
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
